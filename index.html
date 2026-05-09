@@ -526,7 +526,9 @@ async function loadAll() {
     ]);
 
     // Dia a Dia — progress card + table
-    setWrap('wrap-diadia', buildDiaDiaCard(diadia) + buildTable(diadia, {datecol: true}));
+    const metaIdx = diadia[0].findIndex(h => (h||'').trim().toLowerCase() === 'meta');
+    const diadiaColEnd = metaIdx !== -1 ? metaIdx + 1 : undefined;
+    setWrap('wrap-diadia', buildDiaDiaCard(diadia) + buildTable(diadia, {datecol: true, colEnd: diadiaColEnd}));
 
     // Funil Atual — split
     renderCanalSheet(funilAtual, 'wrap-funil-atual-left', 'wrap-funil-atual-right');

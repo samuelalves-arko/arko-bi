@@ -83,12 +83,13 @@ tr.row-zero td{color:var(--muted);opacity:.5}
 .dd-meta-label{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:2px}
 .dd-meta-val{font-size:15px;font-weight:600;color:var(--muted2);font-family:var(--mono);text-align:right}
 .dd-pct{text-align:center;font-size:36px;font-weight:700;color:#00b894;letter-spacing:-0.04em;margin:8px 0 16px;line-height:1}
-.dd-bar-wrap{position:relative;margin-bottom:8px}
+.dd-bar-wrap{position:relative;margin-bottom:24px}
 .dd-bar-track{height:10px;background:var(--surface3);border-radius:6px;overflow:visible;position:relative}
 .dd-bar-fill{height:100%;border-radius:6px;background:#00b894;transition:width .4s ease;position:relative}
 .dd-proj-marker{position:absolute;top:-18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none}
 .dd-proj-label{font-size:9px;color:#fdcb6e;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;margin-bottom:3px}
 .dd-proj-line{width:2px;height:28px;background:#fdcb6e;border-radius:1px}
+.dd-proj-val{position:absolute;top:14px;font-family:var(--mono);font-size:9px;color:#fdcb6e;white-space:nowrap;pointer-events:none}
 .dd-bar-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:6px}
 
 /* LOADING STATE */
@@ -431,6 +432,13 @@ function buildDiaDiaCard(rows) {
 
   const fmtR = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 
+  const projPctStr = (projPct * 100).toFixed(2);
+  const valAlign = projPct < 0.15
+    ? 'transform:translateX(0)'
+    : projPct > 0.85
+      ? 'transform:translateX(-100%)'
+      : 'transform:translateX(-50%)';
+
   return `
 <div class="dd-card">
   <div class="dd-card-top">
@@ -444,10 +452,11 @@ function buildDiaDiaCard(rows) {
   <div class="dd-bar-wrap">
     <div class="dd-bar-track">
       <div class="dd-bar-fill" style="width:${(pct*100).toFixed(2)}%"></div>
-      <div class="dd-proj-marker" style="left:${(projPct*100).toFixed(2)}%">
+      <div class="dd-proj-marker" style="left:${projPctStr}%">
         <span class="dd-proj-label">projeção</span>
         <div class="dd-proj-line"></div>
       </div>
+      <span class="dd-proj-val" style="left:${projPctStr}%;${valAlign}">${fmtR(proj)}</span>
     </div>
   </div>
   <div class="dd-bar-foot"><span>Realizado</span><span>Meta</span></div>

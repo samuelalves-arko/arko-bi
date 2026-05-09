@@ -344,9 +344,9 @@ function buildTable(rows, opts={}) {
         const rMonth = parseInt(match[2], 10);
         const diff = (rMonth - todayMonth) * 31 + (rDay - todayDay);
         if (diff === 0) {
-          rowStyle = 'border-left:2px solid #00b894;background:rgba(0,184,148,0.06);color:var(--text);font-weight:600';
+          rowStyle = 'border-left:3px solid #00b894;background:rgba(0,184,148,0.15);color:#ffffff;font-weight:700';
         } else if (diff > 0) {
-          rowStyle = 'opacity:0.35;color:var(--muted)';
+          rowStyle = 'opacity:0.3';
         }
       }
     }

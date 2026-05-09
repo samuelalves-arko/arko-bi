@@ -338,10 +338,13 @@ function buildTable(rows, opts={}) {
 
     let rowStyle = '';
     if (datecol) {
-      const match = (cells[0]||'').match(/^(\d{1,2})\/(\d{1,2})/);
-      if (match) {
-        const rDay = parseInt(match[1], 10);
-        const rMonth = parseInt(match[2], 10);
+      const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+      const texto = (cells[0]||'').toLowerCase();
+      const diaMatch = texto.match(/,\s*(\d+)\s+de/);
+      const mesMatch = meses.findIndex(m => texto.includes(m));
+      if (diaMatch && mesMatch !== -1) {
+        const rDay = parseInt(diaMatch[1], 10);
+        const rMonth = mesMatch + 1;
         const diff = (rMonth - todayMonth) * 31 + (rDay - todayDay);
         if (diff === 0) {
           rowStyle = 'border-left:3px solid #00b894;background:rgba(0,184,148,0.15);color:#ffffff;font-weight:700';

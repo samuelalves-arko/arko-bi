@@ -76,6 +76,21 @@ tr.row-zero td{color:var(--muted);opacity:.5}
 .money{color:var(--text);font-weight:500}
 .money-zero{color:var(--muted)}
 
+/* PROGRESS CARD */
+.dd-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 28px 20px;margin:20px 20px 0;box-shadow:0 2px 16px rgba(0,0,0,0.25)}
+.dd-card-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px}
+.dd-realizado{font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.03em;line-height:1}
+.dd-meta-label{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:2px}
+.dd-meta-val{font-size:15px;font-weight:600;color:var(--muted2);font-family:var(--mono);text-align:right}
+.dd-pct{text-align:center;font-size:36px;font-weight:700;color:#00b894;letter-spacing:-0.04em;margin:8px 0 16px;line-height:1}
+.dd-bar-wrap{position:relative;margin-bottom:8px}
+.dd-bar-track{height:10px;background:var(--surface3);border-radius:6px;overflow:visible;position:relative}
+.dd-bar-fill{height:100%;border-radius:6px;background:#00b894;transition:width .4s ease;position:relative}
+.dd-proj-marker{position:absolute;top:-18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.dd-proj-label{font-size:9px;color:#fdcb6e;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;margin-bottom:3px}
+.dd-proj-line{width:2px;height:28px;background:#fdcb6e;border-radius:1px}
+.dd-bar-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:6px}
+
 /* LOADING STATE */
 .loading-box{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);font-family:var(--mono);font-size:11px;gap:10px}
 .spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
@@ -369,6 +384,73 @@ function buildTable(rows, opts={}) {
   return html;
 }
 
+// ── DIA A DIA PROGRESS CARD ──
+function buildDiaDiaCard(rows) {
+  if (!rows || rows.length < 2) return '';
+
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const today = new Date();
+  const todayDay = today.getDate();
+  const todayMonth = today.getMonth() + 1;
+
+  let targetRow = null;
+  let lastDataRow = null;
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const texto = (row[0]||'').toLowerCase();
+    const diaMatch = texto.match(/,\s*(\d+)\s+de/);
+    const mesMatch = meses.findIndex(m => texto.includes(m));
+    if (diaMatch && mesMatch !== -1) {
+      const rDay = parseInt(diaMatch[1], 10);
+      const rMonth = mesMatch + 1;
+      if (rDay === todayDay && rMonth === todayMonth) { targetRow = row; break; }
+      if (row[1] && row[1] !== '') lastDataRow = row;
+    }
+  }
+
+  const row = targetRow || lastDataRow;
+  if (!row) return '';
+
+  const fatVal  = parseVal(row[1]);  // col B — Fat. Acumulado
+  const metaVal = parseVal(row[7]);  // col H — Meta
+  const projVal = parseVal(row[8]);  // col I — Realizado Acumulado (projeção)
+
+  if (!metaVal || metaVal === 0) return '';
+
+  const fat  = typeof fatVal  === 'number' ? fatVal  : 0;
+  const proj = typeof projVal === 'number' ? projVal : 0;
+  const meta = metaVal;
+
+  const pct     = Math.min(fat  / meta, 1);
+  const projPct = Math.min(proj / meta, 1);
+  const pctLabel = (fat / meta * 100).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+
+  const fmtR = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+
+  return `
+<div class="dd-card">
+  <div class="dd-card-top">
+    <div class="dd-realizado">${fmtR(fat)}</div>
+    <div>
+      <div class="dd-meta-label">meta do mês</div>
+      <div class="dd-meta-val">${fmtR(meta)}</div>
+    </div>
+  </div>
+  <div class="dd-pct">${pctLabel}</div>
+  <div class="dd-bar-wrap">
+    <div class="dd-bar-track">
+      <div class="dd-bar-fill" style="width:${(pct*100).toFixed(2)}%"></div>
+      <div class="dd-proj-marker" style="left:${(projPct*100).toFixed(2)}%">
+        <span class="dd-proj-label">projeção</span>
+        <div class="dd-proj-line"></div>
+      </div>
+    </div>
+  </div>
+  <div class="dd-bar-foot"><span>Realizado</span><span>Meta</span></div>
+</div>`;
+}
+
 // ── FETCH & RENDER ──
 async function fetchSheet(gid) {
   const res = await fetch(csvUrl(gid));
@@ -443,8 +525,8 @@ async function loadAll() {
       fetchSheet(GIDS.victor),
     ]);
 
-    // Dia a Dia — single wide table
-    setWrap('wrap-diadia', buildTable(diadia, {datecol: true}));
+    // Dia a Dia — progress card + table
+    setWrap('wrap-diadia', buildDiaDiaCard(diadia) + buildTable(diadia, {datecol: true}));
 
     // Funil Atual — split
     renderCanalSheet(funilAtual, 'wrap-funil-atual-left', 'wrap-funil-atual-right');

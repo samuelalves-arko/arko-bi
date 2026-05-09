@@ -77,7 +77,7 @@ tr.row-zero td{color:var(--muted);opacity:.5}
 .money-zero{color:var(--muted)}
 
 /* PROGRESS CARD */
-.dd-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 28px 20px;margin:20px 20px 0;box-shadow:0 2px 16px rgba(0,0,0,0.25)}
+.dd-card{padding:24px 28px 20px}
 .dd-card-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px}
 .dd-realizado{font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.03em;line-height:1}
 .dd-meta-label{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:2px}
@@ -139,6 +139,9 @@ tr.row-zero td{color:var(--muted);opacity:.5}
   </div>
 
   <div id="page-diadia" class="page active">
+    <div class="tcard" style="margin-bottom:14px">
+      <div id="wrap-diadia-card"><div class="loading-box"><div class="spinner"></div>carregando dados...</div></div>
+    </div>
     <div class="tcard">
       <div class="tcard-head">
         <div class="tcard-title">Dia a Dia</div>
@@ -525,10 +528,11 @@ async function loadAll() {
       fetchSheet(GIDS.victor),
     ]);
 
-    // Dia a Dia — progress card + table
+    // Dia a Dia — progress card (separate) + table
     const metaIdx = diadia[0].findIndex(h => (h||'').trim().toLowerCase() === 'meta');
     const diadiaColEnd = metaIdx !== -1 ? metaIdx + 1 : undefined;
-    setWrap('wrap-diadia', buildDiaDiaCard(diadia) + buildTable(diadia, {datecol: true, colEnd: diadiaColEnd}));
+    setWrap('wrap-diadia-card', buildDiaDiaCard(diadia));
+    setWrap('wrap-diadia', buildTable(diadia, {datecol: true, colEnd: diadiaColEnd}));
 
     // Funil Atual — split
     renderCanalSheet(funilAtual, 'wrap-funil-atual-left', 'wrap-funil-atual-right');

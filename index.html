@@ -316,10 +316,14 @@ function fmtCell(raw, header) {
 // ── TABLE BUILDER ──
 function buildTable(rows, opts={}) {
   if (!rows || rows.length < 2) return '<div class="error-box">Sem dados</div>';
-  const { colStart=0, colEnd=null, skipEmptyRows=true, dailyCol=null } = opts;
+  const { colStart=0, colEnd=null, skipEmptyRows=true, dailyCol=null, datecol=false } = opts;
   const end = colEnd || rows[0].length;
   const headers = rows[0].slice(colStart, end);
   const dataRows = rows.slice(1);
+
+  const today = new Date();
+  const todayDay = today.getDate();
+  const todayMonth = today.getMonth() + 1;
 
   let html = '<div class="tscroll"><table><thead><tr>';
   headers.forEach(h => { html += `<th>${h||''}</th>`; });
@@ -331,7 +335,23 @@ function buildTable(rows, opts={}) {
     const isArko = (cells[0]||'').toLowerCase() === 'arko';
     const allEmpty = cells.slice(1).every(c => !c || c === '0' || c === '');
     const cls = isArko ? 'row-arko' : allEmpty ? 'row-zero' : '';
-    html += `<tr class="${cls}">`;
+
+    let rowStyle = '';
+    if (datecol) {
+      const match = (cells[0]||'').match(/^(\d{1,2})\/(\d{1,2})/);
+      if (match) {
+        const rDay = parseInt(match[1], 10);
+        const rMonth = parseInt(match[2], 10);
+        const diff = (rMonth - todayMonth) * 31 + (rDay - todayDay);
+        if (diff === 0) {
+          rowStyle = 'border-left:2px solid #00b894;background:rgba(0,184,148,0.06);color:var(--text);font-weight:600';
+        } else if (diff > 0) {
+          rowStyle = 'opacity:0.35;color:var(--muted)';
+        }
+      }
+    }
+
+    html += `<tr class="${cls}" style="${rowStyle}">`;
     cells.forEach((cell, ci) => {
       const h = headers[ci] || '';
       if (ci === 0) {
@@ -421,7 +441,7 @@ async function loadAll() {
     ]);
 
     // Dia a Dia — single wide table
-    setWrap('wrap-diadia', buildTable(diadia));
+    setWrap('wrap-diadia', buildTable(diadia, {datecol: true}));
 
     // Funil Atual — split
     renderCanalSheet(funilAtual, 'wrap-funil-atual-left', 'wrap-funil-atual-right');
